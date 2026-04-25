@@ -22,7 +22,7 @@ function fmt(v: number) {
 function LineChart({ data }: { data: HistoryRate[] }) {
   if (data.length < 2) return null;
 
-  const W = 340, H = 110, PX = 8, PY = 10;
+  const W = 340, H = 120, PX = 8, PY = 14;
   const bids = data.map((d) => d.bid);
   const min = Math.min(...bids);
   const max = Math.max(...bids);
@@ -31,24 +31,35 @@ function LineChart({ data }: { data: HistoryRate[] }) {
   const px = (i: number) => PX + (i / (data.length - 1)) * (W - PX * 2);
   const py = (v: number) => H - PY - ((v - min) / range) * (H - PY * 2);
 
-  const points = data.map((d, i) => `${px(i)},${py(d.bid)}`).join(" ");
-  const fill = `${PX},${H - PY} ${points} ${W - PX},${H - PY}`;
-
+  const bottom = H - PY;
+  const firstX = px(0);
+  const firstY = py(data[0].bid);
   const lastX = px(data.length - 1);
   const lastY = py(data[data.length - 1].bid);
 
+  const linePts = data.map((d, i) => `${px(i)},${py(d.bid)}`).join(" ");
+  const areaPath =
+    `M ${firstX},${bottom} L ${firstX},${firstY} ` +
+    data.slice(1).map((d, i) => `L ${px(i + 1)},${py(d.bid)}`).join(" ") +
+    ` L ${lastX},${bottom} Z`;
+
+  const isUp = data[data.length - 1].bid >= data[0].bid;
+  const lineColor = isUp ? "#34d399" : "#f87171";
+  const gradId = `hGrad-${data.length}`;
+
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-[110px]">
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-[120px]">
       <defs>
-        <linearGradient id="hGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#6366f1" stopOpacity="0.3" />
-          <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={lineColor} stopOpacity="0.45" />
+          <stop offset="75%" stopColor={lineColor} stopOpacity="0.08" />
+          <stop offset="100%" stopColor={lineColor} stopOpacity="0" />
         </linearGradient>
       </defs>
-      <polygon points={fill} fill="url(#hGrad)" />
-      <polyline points={points} fill="none" stroke="#818cf8" strokeWidth="2"
+      <path d={areaPath} fill={`url(#${gradId})`} />
+      <polyline points={linePts} fill="none" stroke={lineColor} strokeWidth="2"
         strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx={lastX} cy={lastY} r="3.5" fill="#818cf8" />
+      <circle cx={lastX} cy={lastY} r="3.5" fill={lineColor} />
       <text x={PX} y={PY + 4} fontSize="9" fill="rgba(255,255,255,0.3)" fontFamily="Inter,sans-serif">
         R$ {fmt(max)}
       </text>
@@ -135,7 +146,7 @@ export function HistoryModal({ code, onClose }: Props) {
 
         <div className="px-5 mb-3 shrink-0">
           {loading ? (
-            <div className="skeleton rounded-xl h-[110px]" />
+            <div className="skeleton rounded-xl h-[120px]" />
           ) : error ? (
             <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-400 text-xs text-center">
               {error}
