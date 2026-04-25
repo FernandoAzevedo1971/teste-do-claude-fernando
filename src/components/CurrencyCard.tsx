@@ -1,4 +1,5 @@
-import { ExchangeRate } from "../lib/api";
+import { useState, useEffect, useRef } from "react";
+import { ExchangeRate, fetchHistory } from "../lib/api";
 
 const FLAGS: Record<string, string> = {
   USD: "🇺🇸",
@@ -30,23 +31,93 @@ interface CurrencyCardProps {
 }
 
 function fmt(value: number) {
-  return value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return value.toLocaleString("pt-BR", { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+}
+
+function Sparkline({ data, isUp }: { data: number[]; isUp: boolean }) {
+  if (data.length < 2) return <div className="w-16 h-7" />;
+
+  const W = 64, H = 28;
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const range = max - min || 1;
+
+  const px = (i: number) => (i / (data.length - 1)) * W;
+  const py = (v: number) => H - 2 - ((v - min) / range) * (H - 4);
+
+  const points = data.map((v, i) => `${px(i)},${py(v)}`).join(" ");
+  const color = isUp ? "#34d399" : "#f87171";
+  const lastX = px(data.length - 1);
+  const lastY = py(data[data.length - 1]);
+
+  return (
+    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
+      <polyline
+        points={points}
+        fill="none"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        opacity="0.7"
+      />
+      <circle cx={lastX} cy={lastY} r="2.5" fill={color} />
+    </svg>
+  );
 }
 
 export function CurrencyCard({ rate, onHistory }: CurrencyCardProps) {
   const isPositive = rate.pctChange >= 0;
   const accent = ACCENTS[rate.code];
 
+  const [sparkData, setSparkData] = useState<number[]>([]);
+  useEffect(() => {
+    fetchHistory(rate.code, 7)
+      .then((data) => setSparkData(data.map((d) => d.bid)))
+      .catch(() => {});
+  }, [rate.code]);
+
+  const [displayValue, setDisplayValue] = useState(rate.bid);
+  const prevBidRef = useRef(rate.bid);
+  const animRef = useRef<number>(0);
+
+  useEffect(() => {
+    const from = prevBidRef.current;
+    const to = rate.bid;
+    if (from === to) return;
+
+    const duration = 1000;
+    const start = performance.now();
+
+    const animate = (now: number) => {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplayValue(from + (to - from) * eased);
+      if (progress < 1) {
+        animRef.current = requestAnimationFrame(animate);
+      } else {
+        prevBidRef.current = to;
+      }
+    };
+
+    cancelAnimationFrame(animRef.current);
+    animRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animRef.current);
+  }, [rate.bid]);
+
+  const sparkIsUp = sparkData.length >= 2
+    ? sparkData[sparkData.length - 1] >= sparkData[0]
+    : isPositive;
+
   return (
     <div
       className={`relative overflow-hidden border ${accent.border} rounded-2xl p-5 transition-all duration-300 animate-slide-up`}
       style={{ background: "rgba(255,255,255,0.05)", backdropFilter: "blur(20px)" }}
     >
-      {/* Top reflection line */}
       <div className="absolute top-0 left-0 right-0 h-px"
         style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent)" }} />
 
-      {/* Corner glow */}
       <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full pointer-events-none"
         style={{ background: `radial-gradient(circle, ${accent.glow}, transparent 70%)` }} />
 
@@ -79,11 +150,16 @@ export function CurrencyCard({ rate, onHistory }: CurrencyCardProps) {
         </div>
       </div>
 
-      <div className="mt-4 flex items-end gap-2 relative">
-        <span className="text-[11px] text-white/30 font-medium mb-0.5">R$</span>
-        <span className="text-4xl font-bold text-white tracking-tight leading-none">
-          {fmt(rate.bid)}
-        </span>
+      <div className="mt-4 flex items-center justify-between relative">
+        <div className="flex items-end gap-2">
+          <span className="text-[11px] text-white/30 font-medium mb-0.5">R$</span>
+          <span className="text-4xl font-bold text-white tracking-tight leading-none">
+            {fmt(displayValue)}
+          </span>
+        </div>
+        <div className="self-center opacity-80">
+          <Sparkline data={sparkData} isUp={sparkIsUp} />
+        </div>
       </div>
 
       <div className="mt-3 flex items-center justify-between relative">

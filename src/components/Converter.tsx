@@ -15,7 +15,7 @@ interface ConverterProps {
 }
 
 function fmt(value: number) {
-  return value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return value.toLocaleString("pt-BR", { minimumFractionDigits: 3, maximumFractionDigits: 3 });
 }
 
 export function Converter({ rates }: ConverterProps) {

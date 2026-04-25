@@ -16,7 +16,7 @@ const CURRENCY_NAMES: Record<string, string> = {
 };
 
 function fmt(v: number) {
-  return v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return v.toLocaleString("pt-BR", { minimumFractionDigits: 3, maximumFractionDigits: 3 });
 }
 
 function LineChart({ data }: { data: HistoryRate[] }) {
