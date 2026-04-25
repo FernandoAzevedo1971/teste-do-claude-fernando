@@ -18,6 +18,7 @@ export default function App() {
     <div className="min-h-screen text-slate-50 flex flex-col relative overflow-x-hidden"
       style={{ background: "linear-gradient(135deg, #0a001f 0%, #050d2e 40%, #001a3d 70%, #060022 100%)" }}>
 
+      {/* Background orbs */}
       <div className="fixed -top-24 -left-24 w-96 h-96 rounded-full pointer-events-none"
         style={{ background: "radial-gradient(circle, rgba(99,102,241,0.22) 0%, transparent 70%)" }} />
       <div className="fixed bottom-10 -right-20 w-80 h-80 rounded-full pointer-events-none"
@@ -25,7 +26,7 @@ export default function App() {
       <div className="fixed top-1/2 left-1/3 w-72 h-72 rounded-full pointer-events-none"
         style={{ background: "radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 70%)" }} />
 
-      <Header onRefresh={refresh} loading={loading} />
+      <Header onRefresh={refresh} loading={loading} lastUpdated={lastUpdated} />
 
       <main className="flex-1 px-4 py-5 max-w-lg mx-auto w-full space-y-3 pb-6 relative z-10">
         {error && (

@@ -42,8 +42,11 @@ export function CurrencyCard({ rate, onHistory }: CurrencyCardProps) {
       className={`relative overflow-hidden border ${accent.border} rounded-2xl p-5 transition-all duration-300 animate-slide-up`}
       style={{ background: "rgba(255,255,255,0.05)", backdropFilter: "blur(20px)" }}
     >
+      {/* Top reflection line */}
       <div className="absolute top-0 left-0 right-0 h-px"
         style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent)" }} />
+
+      {/* Corner glow */}
       <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full pointer-events-none"
         style={{ background: `radial-gradient(circle, ${accent.glow}, transparent 70%)` }} />
 
@@ -57,6 +60,7 @@ export function CurrencyCard({ rate, onHistory }: CurrencyCardProps) {
             </span>
           </div>
         </div>
+
         <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border ${
           isPositive
             ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"

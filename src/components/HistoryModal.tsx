@@ -33,6 +33,7 @@ function LineChart({ data }: { data: HistoryRate[] }) {
 
   const points = data.map((d, i) => `${px(i)},${py(d.bid)}`).join(" ");
   const fill = `${PX},${H - PY} ${points} ${W - PX},${H - PY}`;
+
   const lastX = px(data.length - 1);
   const lastY = py(data[data.length - 1].bid);
 
@@ -140,8 +141,10 @@ export function HistoryModal({ code, onClose }: Props) {
               {error}
             </div>
           ) : (
-            <div className="rounded-xl px-3 pt-2 pb-1 border border-white/[0.07]"
-              style={{ background: "rgba(255,255,255,0.04)" }}>
+            <div
+              className="rounded-xl px-3 pt-2 pb-1 border border-white/[0.07]"
+              style={{ background: "rgba(255,255,255,0.04)" }}
+            >
               <LineChart data={data} />
             </div>
           )}
@@ -159,7 +162,9 @@ export function HistoryModal({ code, onClose }: Props) {
               {[...data].reverse().map((item, i) => {
                 const date = new Date(item.timestamp);
                 const label = date.toLocaleDateString("pt-BR", {
-                  weekday: "short", day: "2-digit", month: "short",
+                  weekday: "short",
+                  day: "2-digit",
+                  month: "short",
                 });
                 const isLatest = i === 0;
                 return (
@@ -167,14 +172,18 @@ export function HistoryModal({ code, onClose }: Props) {
                     className={`flex items-center justify-between py-3 ${isLatest ? "opacity-100" : "opacity-75"}`}
                   >
                     <div className="flex items-center gap-2">
-                      {isLatest && <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse-slow" />}
+                      {isLatest && (
+                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse-slow" />
+                      )}
                       <span className="text-xs text-white/40 capitalize">{label}</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className={`text-[10px] font-medium ${item.pctChange >= 0 ? "text-emerald-400" : "text-red-400"}`}>
                         {item.pctChange >= 0 ? "+" : ""}{item.pctChange.toFixed(2)}%
                       </span>
-                      <span className="text-sm font-semibold text-white">R$ {fmt(item.bid)}</span>
+                      <span className="text-sm font-semibold text-white">
+                        R$ {fmt(item.bid)}
+                      </span>
                     </div>
                   </div>
                 );

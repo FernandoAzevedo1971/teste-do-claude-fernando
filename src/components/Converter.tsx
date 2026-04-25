@@ -41,8 +41,10 @@ export function Converter({ rates }: ConverterProps) {
         style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent)" }} />
 
       <div className="flex items-center gap-2 mb-4">
-        <div className="w-7 h-7 rounded-lg border border-indigo-500/20 flex items-center justify-center text-sm"
-          style={{ background: "rgba(99,102,241,0.15)" }}>
+        <div
+          className="w-7 h-7 rounded-lg border border-indigo-500/20 flex items-center justify-center text-sm"
+          style={{ background: "rgba(99,102,241,0.15)" }}
+        >
           🔄
         </div>
         <h2 className="text-sm font-semibold text-white/80 tracking-tight">Conversor</h2>

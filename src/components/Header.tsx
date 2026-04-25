@@ -1,9 +1,10 @@
 interface HeaderProps {
   onRefresh: () => void;
   loading: boolean;
+  lastUpdated: Date | null;
 }
 
-export function Header({ onRefresh, loading }: HeaderProps) {
+export function Header({ onRefresh, loading, lastUpdated }: HeaderProps) {
   const today = new Date().toLocaleDateString("pt-BR", {
     weekday: "long",
     day: "2-digit",
@@ -12,6 +13,10 @@ export function Header({ onRefresh, loading }: HeaderProps) {
   });
 
   const todayFormatted = today.charAt(0).toUpperCase() + today.slice(1);
+
+  const time = lastUpdated
+    ? lastUpdated.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+    : null;
 
   return (
     <header
@@ -31,6 +36,11 @@ export function Header({ onRefresh, loading }: HeaderProps) {
               Câmbio Hoje
             </h1>
             <p className="text-[11px] text-white/40 mt-0.5">{todayFormatted}</p>
+            {time && (
+              <p className="text-[10px] text-white/30 italic mt-0.5">
+                Última atualização às {time} h
+              </p>
+            )}
           </div>
         </div>
 
@@ -48,8 +58,11 @@ export function Header({ onRefresh, loading }: HeaderProps) {
             stroke="currentColor"
             strokeWidth={2.5}
           >
-            <path strokeLinecap="round" strokeLinejoin="round"
-              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
           </svg>
         </button>
       </div>
