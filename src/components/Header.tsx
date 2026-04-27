@@ -1,10 +1,19 @@
+function isMarketOpen(): boolean {
+  const now = new Date();
+  const brasilia = new Date(now.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+  const day = brasilia.getDay();
+  const mins = brasilia.getHours() * 60 + brasilia.getMinutes();
+  return day >= 1 && day <= 5 && mins >= 9 * 60 && mins < 18 * 60;
+}
+
 interface HeaderProps {
   onRefresh: () => void;
   loading: boolean;
   lastUpdated: Date | null;
+  pulling?: boolean;
 }
 
-export function Header({ onRefresh, loading, lastUpdated }: HeaderProps) {
+export function Header({ onRefresh, loading, lastUpdated, pulling = false }: HeaderProps) {
   const today = new Date().toLocaleDateString("pt-BR", {
     weekday: "long",
     day: "2-digit",
@@ -17,6 +26,9 @@ export function Header({ onRefresh, loading, lastUpdated }: HeaderProps) {
   const time = lastUpdated
     ? lastUpdated.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
     : null;
+
+  const marketOpen = isMarketOpen();
+  const spinning = loading || pulling;
 
   return (
     <header
@@ -41,6 +53,12 @@ export function Header({ onRefresh, loading, lastUpdated }: HeaderProps) {
                 Última atualização às {time} h
               </p>
             )}
+            <p className="text-[10px] mt-0.5 flex items-center gap-1">
+              <span className={`inline-block w-1.5 h-1.5 rounded-full ${marketOpen ? "bg-emerald-500 animate-pulse" : "bg-white/20"}`} />
+              <span className={marketOpen ? "text-emerald-400/70" : "text-white/25"}>
+                {marketOpen ? "Mercado aberto" : "Mercado fechado"}
+              </span>
+            </p>
           </div>
         </div>
 
@@ -52,7 +70,7 @@ export function Header({ onRefresh, loading, lastUpdated }: HeaderProps) {
           title="Atualizar cotações"
         >
           <svg
-            className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
+            className={`w-4 h-4 ${spinning ? "animate-spin" : ""}`}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
