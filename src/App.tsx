@@ -6,8 +6,8 @@ import { Converter } from "./components/Converter";
 import { LastUpdated } from "./components/LastUpdated";
 import { HistoryModal } from "./components/HistoryModal";
 
-const MAX_PULL = 90;
-const TRIGGER_THRESHOLD = 60;
+const MAX_PULL = 55;
+const TRIGGER_THRESHOLD = 45;
 
 function SkeletonCard() {
   return <div className="skeleton rounded-2xl h-[130px]" />;
@@ -18,12 +18,16 @@ export default function App() {
   const [historyCode, setHistoryCode] = useState<string | null>(null);
   const [pullY, setPullY] = useState(0);
   const [isReleasing, setIsReleasing] = useState(false);
+  const [pullRefreshing, setPullRefreshing] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const refreshRef = useRef(refresh);
   const loadingRef = useRef(loading);
   useEffect(() => { refreshRef.current = refresh; }, [refresh]);
-  useEffect(() => { loadingRef.current = loading; }, [loading]);
+  useEffect(() => {
+    loadingRef.current = loading;
+    if (!loading) setPullRefreshing(false);
+  }, [loading]);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -44,7 +48,7 @@ export default function App() {
       const delta = e.touches[0].clientY - startY;
       if (delta > 0) {
         e.preventDefault();
-        curPullY = Math.min(delta * 0.5, MAX_PULL);
+        curPullY = Math.min(delta * 0.35, MAX_PULL);
         setPullY(curPullY);
       } else {
         curPullY = 0;
@@ -56,6 +60,7 @@ export default function App() {
       if (startY < 0) return;
       setIsReleasing(true);
       if (curPullY >= TRIGGER_THRESHOLD && !loadingRef.current) {
+        setPullRefreshing(true);
         refreshRef.current();
       }
       curPullY = 0;
@@ -83,31 +88,45 @@ export default function App() {
       className="overflow-x-hidden"
       style={{ background: "#0a001f", minHeight: "100vh" }}
     >
-      {/* Indicador revelado conforme a tela desce */}
-      <div
-        className="fixed top-5 left-1/2 -translate-x-1/2 z-10"
-        style={{
-          opacity: pullY > 4 ? pullProgress : 0,
-          transition: isReleasing ? "opacity 0.3s" : "none",
-        }}
-      >
+      {/* Indicador durante o arraste */}
+      {pullY > 4 && (
         <div
-          className="w-9 h-9 rounded-full flex items-center justify-center border border-white/20"
-          style={{ background: "rgba(255,255,255,0.08)", backdropFilter: "blur(12px)" }}
+          className="fixed top-5 left-1/2 -translate-x-1/2 z-10"
+          style={{ opacity: pullProgress, transition: "none" }}
         >
-          <svg
-            className={`w-4 h-4 text-teal-400 ${pulling ? "animate-spin" : ""}`}
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2.5}
-            style={{ transform: pulling ? undefined : `rotate(${pullProgress * 300}deg)` }}
+          <div
+            className="w-9 h-9 rounded-full flex items-center justify-center border border-white/20"
+            style={{ background: "rgba(255,255,255,0.08)", backdropFilter: "blur(12px)" }}
           >
-            <path strokeLinecap="round" strokeLinejoin="round"
-              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
+            <svg
+              className={`w-4 h-4 text-teal-400 ${pulling ? "animate-spin" : ""}`}
+              fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
+              style={{ transform: pulling ? undefined : `rotate(${pullProgress * 300}deg)` }}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Indicador centralizado durante o carregamento após pull */}
+      {pullRefreshing && (
+        <div className="fixed inset-0 z-30 flex items-center justify-center pointer-events-none">
+          <div
+            className="w-14 h-14 rounded-full flex items-center justify-center border border-white/20"
+            style={{ background: "rgba(255,255,255,0.07)", backdropFilter: "blur(16px)" }}
+          >
+            <svg
+              className="w-6 h-6 text-teal-400 animate-spin"
+              fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </div>
+        </div>
+      )}
 
       {/* Conteúdo deslizante */}
       <div
